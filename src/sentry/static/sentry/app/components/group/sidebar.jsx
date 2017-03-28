@@ -12,6 +12,7 @@ import {t, tct} from '../../locale';
 const GroupSidebar = React.createClass({
   propTypes: {
     group: React.PropTypes.object,
+    event: React.PropTypes.object,
   },
 
   contextTypes: {
@@ -108,7 +109,7 @@ const GroupSidebar = React.createClass({
 
     return (
       <div className="group-stats">
-        <SuggestedOwners />
+        <SuggestedOwners event={this.props.event}/>
 
         <GroupReleaseStats
             group={group}
@@ -129,7 +130,7 @@ const GroupSidebar = React.createClass({
               tag={data.key} />
           );
         })}
-        {participants.length !== 0 &&
+        {(new Set(this.context.organization.features)).has('release-commits') && participants.length !== 0 && 
           <GroupParticipants participants={participants} />
         }
 
