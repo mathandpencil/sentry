@@ -40,13 +40,11 @@ const SuggestedOwners = React.createClass({
     let project = this.getProject();
     this.api.request(`/projects/${org.slug}/${project.slug}/events/${event.id}/committers/`, {
       success: (data, _, jqXHR) => {
-        console.log(data);
         this.setState({
           owners: data.committers,
         });
       },
       error: (error) => {
-        console.log(error);
         this.setState({
           owners: undefined,
         });
@@ -55,7 +53,6 @@ const SuggestedOwners = React.createClass({
   },
 
   renderCommitter(props){
-    console.log(props);
     return (
       <span className="avatar-grid-item tip" title={`<div><strong>Click to assign ${props.name}</strong></div> <small>Reason: XXXXX</small>`}>
         <Avatar user={props}/>

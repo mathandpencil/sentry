@@ -135,7 +135,7 @@ class EventFileCommittersEndpoint(ProjectEndpoint):
         # populate event data
         Event.objects.bind_nodes([event], 'data')
 
-        commits = self._get_commits(event.project, event.get_tag('sentry:release'))
+        commits = self._get_commits(event.project, event.group.first_release_id)
         if not commits:
             return Response({'detail': 'No Commits found for Release'}, status=404)
 
