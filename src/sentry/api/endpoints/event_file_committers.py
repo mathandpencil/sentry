@@ -7,7 +7,7 @@ import operator
 from sentry.api.bases.project import ProjectEndpoint
 from sentry.api.serializers import serialize
 from sentry.models import (
-    Release, ReleaseCommit, Commit, CommitFileChange, Event
+    Release, ReleaseCommit, Commit, CommitFileChange, Event, Group
 )
 from sentry.api.serializers.models.release import get_users_for_commits
 
@@ -134,8 +134,10 @@ class EventFileCommittersEndpoint(ProjectEndpoint):
 
         # populate event data
         Event.objects.bind_nodes([event], 'data')
+        # find group
+        group = Group.objects.get(id=event.group_id)
 
-        commits = self._get_commits(event.project, event.group.first_release_id)
+        commits = self._get_commits(event.project, group.first_release_id)
         if not commits:
             return Response({'detail': 'No Commits found for Release'}, status=404)
 

@@ -16,7 +16,6 @@ const SuggestedOwners = React.createClass({
     ApiMixin,
     GroupState,
     TooltipMixin({
-      html: true,
       selector: '.tip',
       container: 'body'
     })
@@ -31,7 +30,9 @@ const SuggestedOwners = React.createClass({
   },
 
   componentWillReceiveProps(nextProps){
-    this.fetchData(nextProps.event);
+    if(this.props.event != nextProps.event){
+      this.fetchData(nextProps.event);
+    }
   },
 
   fetchData(event){
@@ -54,7 +55,7 @@ const SuggestedOwners = React.createClass({
 
   renderCommitter(props){
     return (
-      <span className="avatar-grid-item tip" title={`<div><strong>Click to assign ${props.name}</strong></div> <small>Reason: XXXXX</small>`}>
+      <span className="avatar-grid-item tip" title={`Click to assign ${props.name}`}>
         <Avatar user={props}/>
       </span>);
   },
