@@ -362,6 +362,20 @@ function Sketch:increment(items)
     return results
 end
 
+function Sketch:export()
+    -- TODO: Check to ensure that these return types are not going to result in truncation.
+    return cmsgpack.pack({
+        self.configuration,
+        redis.call('ZRANGE', self.index, 0, -1, 'WITHSCORES'),
+        redis.call('HGETALL', self.estimates),
+    })
+end
+
+function Sketch:import(data)
+    local configuration, index, estimators = unpack(cmsgpack.unpack(data))
+    error('not implemented')
+end
+
 
 --[[ Redis API ]]--
 
@@ -565,5 +579,31 @@ return Router:new({
             end
         end,
         true
-    )
+    ),
+
+    EXPORT = Command:new(
+        function (sketches, arguments)
+            return map(
+                function (sketch)
+                    return sketch:export()
+                end,
+                sketches
+            )
+        end,
+        true
+    ),
+
+    IMPORT = Command:new(
+        function (sketches, arguments)
+            return map(
+                function (item)
+                    local sketch, data = unpack(item)
+                    return sketch:import(data)
+                end,
+                zip({sketches, arguments})
+            )
+        end,
+        false
+    ),
+
 })(KEYS, ARGV)
