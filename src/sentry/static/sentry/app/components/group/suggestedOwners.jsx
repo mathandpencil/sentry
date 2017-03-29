@@ -30,7 +30,13 @@ const SuggestedOwners = React.createClass({
   },
 
   componentWillReceiveProps(nextProps){
-    if(this.props.event != nextProps.event){
+    if(this.props.event && nextProps.event){
+      if(this.props.event.id != nextProps.event.id){
+        //two events, with different IDs
+        this.fetchData(nextProps.event);
+      }
+    } else if(nextProps.event){
+      //going from having no event to having an event
       this.fetchData(nextProps.event);
     }
   },
