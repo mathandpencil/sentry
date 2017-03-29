@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Avatar from '../Avatar';
+import Avatar from '../avatar';
 import TooltipMixin from '../../mixins/tooltip';
 import ApiMixin from '../../mixins/apiMixin';
 import GroupState from '../../mixins/groupState';

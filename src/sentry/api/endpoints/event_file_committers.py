@@ -7,7 +7,7 @@ import operator
 from sentry.api.bases.project import ProjectEndpoint
 from sentry.api.serializers import serialize
 from sentry.models import (
-    Release, ReleaseCommit, Commit, CommitFileChange, Event, Group
+    Release, ReleaseCommit, Commit, CommitFileChange, Event, Group, GroupTagValue
 )
 from sentry.api.serializers.models.release import get_users_for_commits
 
@@ -111,6 +111,23 @@ class EventFileCommittersEndpoint(ProjectEndpoint):
 
         return [sentry_user_dict[author_id] for author_id in sorted_committers]
 
+    def _get_first_version(self, event):
+        # find first release verson
+        group = Group.objects.get(id=event.group_id)
+        if group.first_release is None:
+            try:
+                first_release = GroupTagValue.objects.filter(
+                    group=group,
+                    key__in=('sentry:release', 'release'),
+                ).order_by('first_seen')[0]
+            except IndexError:
+                first_release = None
+            else:
+                first_release = first_release.value
+        else:
+            first_release = group.first_release.version
+        return first_release
+
     def get(self, _, project, event_id):
         """
         Retrieve Committer information for an event
@@ -134,10 +151,9 @@ class EventFileCommittersEndpoint(ProjectEndpoint):
 
         # populate event data
         Event.objects.bind_nodes([event], 'data')
-        # find group
-        group = Group.objects.get(id=event.group_id)
 
-        commits = self._get_commits(event.project, group.first_release_id)
+        commits = self._get_commits(event.project, self._get_first_version(event))
+
         if not commits:
             return Response({'detail': 'No Commits found for Release'}, status=404)
 

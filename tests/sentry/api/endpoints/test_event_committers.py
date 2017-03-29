@@ -12,11 +12,14 @@ class EventCommittersTest(APITestCase):
 
         project = self.create_project()
 
-        group = self.create_group(project=project)
-
         release = self.create_release(
             project,
             self.user
+        )
+
+        group = self.create_group(
+            project=project,
+            first_release=release
         )
 
         event = self.create_event(
