@@ -362,18 +362,58 @@ function Sketch:increment(items)
     return results
 end
 
+local function response_to_table(response)
+    local result = {}
+    for i, #response, 2 do
+        result[response[i]] = response[i + 1]
+    end
+    return result
+end
+
 function Sketch:export()
-    -- TODO: Check to ensure that these return types are not going to result in truncation.
+    -- If there's no data, there's nothing meaningful to export.
+    if not self.configuration:exists() then
+        return cmsgpack.pack(nil)
+    end
     return cmsgpack.pack({
-        self.configuration,
-        redis.call('ZRANGE', self.index, 0, -1, 'WITHSCORES'),
-        redis.call('HGETALL', self.estimates),
+        self.configuration.data,
+        response_to_table(redis.call('ZRANGE', self.index, 0, -1, 'WITHSCORES')),
+        response_to_table(redis.call('HGETALL', self.estimates)),
     })
 end
 
-function Sketch:import(data)
-    local configuration, index, estimators = unpack(cmsgpack.unpack(data))
+function Sketch:import(payload)
+    local data = cmsgpack.unpack(payload)
+    if data == nil then
+        return  -- nothing to do here
+    end
+
+    local source_configuration, source_index, source_estimators = unpack(data)
+
+    -- TODO: The 'index' could use the minimum between the source and
+    -- destination payloads, but that could be kind of strange since it'd
+    -- potentially result in the source index having a smaller index size
+    -- than configured. Maybe this should allow truncating the destination
+    -- index, but not the source? For now, just ensuring they are equal
+    -- should be fine.
+    -- TODO: This is a leaky abstraction, and should probably be encapsulated
+    -- better "Configuration"...
+    for _, field in ipairs({'width', 'depth', 'index'}) do
+        assert(self.configuration.get(field) == source_configuration[field])
+    end
+
     error('not implemented')
+
+    -- If both sides have no estimators (index is not full) then sum the index
+    -- contents together to build the new index, and trigger the estimator
+    -- spillover (if necessary.)
+
+    -- If one side has estimators but the other does not, build the estimators
+    -- for the side without them, merge the estimators, and then merge the
+    -- indices by ???.
+
+    -- If both sides have estimators, merge them, and then merge the indices by
+    -- ???.
 end
 
 
