@@ -383,20 +383,18 @@ class Group(Model):
         from sentry.models import GroupTagValue
 
         # find first seen release
-        if self.first_release is None:
+        if self.first_release_id is None:
             try:
                 first_release = GroupTagValue.objects.filter(
                     group=self,
                     key__in=('sentry:release', 'release'),
                 ).order_by('first_seen')[0]
             except IndexError:
-                first_release = None
+                return None
             else:
-                first_release = first_release.value
+                return first_release.value
         else:
-            first_release = self.first_release.version
-
-        return first_release
+            return self.first_release.version
 
     def get_last_release(self):
         from sentry.models import GroupTagValue
@@ -408,11 +406,9 @@ class Group(Model):
                 key__in=('sentry:release', 'release'),
             ).order_by('-last_seen')[0]
         except IndexError:
-            last_release = None
+            return None
         else:
-            last_release = last_release.value
-
-        return last_release
+            return last_release.value
 
     def get_event_type(self):
         """

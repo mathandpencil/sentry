@@ -115,7 +115,10 @@ class EventFileCommittersEndpoint(ProjectEndpoint):
         sorted_committers = sorted(committers, key=committers.get)
         sentry_user_dict = get_users_for_commits(commits)
 
-        user_dicts = [{'author': sentry_user_dict[author_id], 'commits': self._get_commits_committer(commits, author_id)} for author_id in sorted_committers]
+        user_dicts = [{
+            'author': sentry_user_dict[author_id],
+            'commits': self._get_commits_committer(commits, author_id)
+        } for author_id in sorted_committers]
 
         return user_dicts
 
@@ -161,14 +164,21 @@ class EventFileCommittersEndpoint(ProjectEndpoint):
         if path_set:
             file_changes = self._get_commit_file_changes(commits, path_set)
 
-        commit_path_matches = {path: self._match_commits_path(file_changes, path) for path in path_set}
+        commit_path_matches = {
+            path: self._match_commits_path(file_changes, path)
+            for path in path_set
+        }
 
         annotated_frames = [{
             'frame': frame,
             'commits': commit_path_matches[frame['abs_path']]
         } for frame in app_frames]
 
-        relevant_commits = list({commit for match in commit_path_matches for commit in commit_path_matches[match]})
+        relevant_commits = list({
+            commit
+            for match in commit_path_matches
+            for commit in commit_path_matches[match]
+        })
 
         committers = self._get_committers(annotated_frames, relevant_commits)
 
