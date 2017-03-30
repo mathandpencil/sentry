@@ -1,4 +1,6 @@
 import React from 'react';
+import ReactDOMServer from 'react-dom/server';
+import moment from 'moment';
 
 import Avatar from '../avatar';
 import TooltipMixin from '../../mixins/tooltip';
@@ -17,6 +19,7 @@ const SuggestedOwners = React.createClass({
     GroupState,
     TooltipMixin({
       selector: '.tip',
+      html: true,
       container: 'body'
     })
   ],
@@ -41,6 +44,12 @@ const SuggestedOwners = React.createClass({
     }
   },
 
+  componentDidUpdate() {
+    // TODO(maxbittker) check that it's really new state
+    this.removeTooltips();
+    this.attachTooltips();
+  },
+
   fetchData(event){
     if(!event) return;
     let org = this.getOrganization();
@@ -59,10 +68,20 @@ const SuggestedOwners = React.createClass({
     });
   },
 
-  renderCommitter(props){
+  renderCommitter({author, commits}){
     return (
-      <span className="avatar-grid-item tip" title={`Click to assign ${props.name}`}>
-        <Avatar user={props}/>
+      <span key={author.id} className="avatar-grid-item tip" title={
+        ReactDOMServer.renderToStaticMarkup(
+          <div>
+            <strong>
+              {`${author.name}:`}
+            </strong><br/>
+            <ul>
+              {commits.map(c=><li key={c.id}>{c.message} - {moment(c.dateCreated).fromNow()}</li>)}
+            </ul>
+          </div>)
+        }>
+        <Avatar user={author}/>
       </span>);
   },
 
